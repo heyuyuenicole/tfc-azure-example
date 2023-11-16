@@ -1,41 +1,29 @@
 variable "prefix" {
   type        = string
-  description = "(Required) Naming prefix for resources."
-}
-
-variable "address_space" {
-  type        = string
-  description = "(Optional) Address space for virtual network, defaults to 10.0.0.0/16."
-  default     = "10.42.0.0/16"
+  description = "(Required) User initials for naming of resources"
 }
 
 variable "location" {
-  type        = string
-  description = "(Optional) Region for Azure resources, defaults to East US."
-  default     = "eastus"
+  type = string
+  description = "(Optional) Azure region to use, defaults to East US."
+  default = "eastus"
 }
 
-locals {
-  base_name = "${var.prefix}web"
-}
-
-resource "azurerm_resource_group" "web" {
-  name     = local.base_name
+resource "azurerm_resource_group" "training" {
+  name     = "azureuser${var.prefix}tfc"
   location = var.location
-  
-  tags = {
-    "environment" = var.prefix
-  }
 }
 
-resource "azurerm_virtual_network" "web" {
-  name                = local.base_name
-  resource_group_name = azurerm_resource_group.web.name
-  location            = azurerm_resource_group.web.location
+resource "azurerm_virtual_network" "training" {
+  name                = "azureuser${var.prefix}tfc"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.training.location
+  resource_group_name = azurerm_resource_group.training.name
+}
 
-  address_space = [var.address_space]
-  
-  tags = {
-    "environment" = var.prefix
-  }
+resource "azurerm_subnet" "training" {
+  name                 = "azureuser${var.prefix}sub"
+  resource_group_name  = azurerm_resource_group.training.name
+  virtual_network_name = azurerm_virtual_network.training.name
+  address_prefixes     = ["10.0.2.0/24"]
 }
